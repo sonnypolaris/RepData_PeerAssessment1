@@ -9,7 +9,7 @@ output:
 ## Loading and preprocessing the data
 Load the data using read.csv() which will load the 'NA' values for the steps columns.  Show the summary of the obersavations.
 ```{r echo=TRUE}
-setwd('~/Documents/repos/reproducible_resarch/RepData_PeerAssessment1')
+setwd('~/Documents/repos/rr-1')
 act_tbl <- read.csv("activity.csv")
 summary(act_tbl)
 
@@ -21,6 +21,7 @@ Use the *aggregate* function to sum up the steps by day.
 ```{r Total Steps Per Day, echo=TRUE, results='markup'}
 steps_per_day <- aggregate (steps ~ date, act_tbl, sum)
 head(steps_per_day)
+summary(steps_per_day)
 ```
 
 #### Histogram (# of Days by Total Step bins)
@@ -34,7 +35,7 @@ Calculate the *mean* and *median* using the proper function.  Also, skip NA valu
 mean(steps_per_day$steps, na.rm = TRUE)
 median(steps_per_day$steps, na.rm = TRUE)
 ```
-
+Notice that the mean() and median() steps per day did not change dramatically.  This is makes sense because we replaced NA values with the mean(steps) for that particular interval.  However, the histogram did become more centered around the mean with more days exceeding 10K steps per day.
 
 ## What is the average daily activity pattern?
 1. Use the *aggregate* function to get the *mean* by time interval.  
@@ -53,6 +54,50 @@ avg_intv[which (avg_intv$steps == max(avg_intv$steps)),]
 ### 
 ## Imputing missing values
 
+### Calculate the missing values
+```{r Missing Values, echo=TRUE}
+length( act_tbl [which (is.na(act_tbl$steps)), 1])
+```
+### Replace missing values
+Use the mean(steps) for the interval across all days
+```{r, Replace Missing values, echo=TRUE}
+repl_act <- act_tbl
+for (i in 1:nrow(repl_act))
+{
+  if (is.na (repl_act[i,1]) )
+       repl_act[i,1] <- mean(repl_act[ 
+           which (repl_act$interval == repl_act[i,3])  ,1], na.rm=TRUE)
+}
+head(repl_act)
+```
 
+### Histogram of the data with replacement data
+```{r, Histogram with replacement data, echo=TRUE}
+steps_per_day <- aggregate (steps ~ date, repl_act, sum)
+summary(steps_per_day)
+hist(steps_per_day$steps,breaks=9, ylab="# of Days", xlab="# of Steps", main="With Replacement Data")
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+``` {r, Weekendays, echo=TRUE}
+isWeekday <- function (d)
+{
+  wd <- weekdays(as.Date( as.character(d) ), abbreviate=TRUE  )
+
+  r <- factor()
+  if (wd == "Sun" || d == "Sat")
+    r <- as.factor("Weekend")
+  else
+    r <- as.factor("Weekday")
+  is
+  r
+  
+}
+
+repl_act$daytype <- factor( c("Weekday", "Weekend") )
+for (i in 1:nrow(repl_act))
+{
+  repl_act[i,4] <- isWeekday(repl_act[i,2])
+}
+
+```

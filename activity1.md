@@ -5,7 +5,7 @@
 Load the data using read.csv() which will load the 'NA' values for the steps columns.  Show the summary of the obersavations.
 
 ```r
-setwd('~/Documents/repos/reproducible_resarch/RepData_PeerAssessment1')
+setwd('~/Documents/repos/rr-1')
 act_tbl <- read.csv("activity.csv")
 summary(act_tbl)
 ```
@@ -40,6 +40,21 @@ head(steps_per_day)
 ## 6 2012-10-07 11015
 ```
 
+```r
+summary(steps_per_day)
+```
+
+```
+##          date        steps      
+##  2012-10-02: 1   Min.   :   41  
+##  2012-10-03: 1   1st Qu.: 8841  
+##  2012-10-04: 1   Median :10765  
+##  2012-10-05: 1   Mean   :10766  
+##  2012-10-06: 1   3rd Qu.:13294  
+##  2012-10-07: 1   Max.   :21194  
+##  (Other)   :47
+```
+
 #### Histogram (# of Days by Total Step bins)
 
 ```r
@@ -66,7 +81,7 @@ median(steps_per_day$steps, na.rm = TRUE)
 ```
 ## [1] 10765
 ```
-
+Notice that the mean() and median() steps per day did not change dramatically.  This is makes sense because we replaced NA values with the mean(steps) for that particular interval.  However, the histogram did become more centered around the mean with more days exceeding 10K steps per day.
 
 ## What is the average daily activity pattern?
 1. Use the *aggregate* function to get the *mean* by time interval.  
@@ -94,6 +109,83 @@ avg_intv[which (avg_intv$steps == max(avg_intv$steps)),]
 ### 
 ## Imputing missing values
 
+### Calculate the missing values
 
+```r
+length( act_tbl [which (is.na(act_tbl$steps)), 1])
+```
+
+```
+## [1] 2304
+```
+### Replace missing values
+Use the mean(steps) for the interval across all days
+
+```r
+repl_act <- act_tbl
+for (i in 1:nrow(repl_act))
+{
+  if (is.na (repl_act[i,1]) )
+       repl_act[i,1] <- mean(repl_act[ 
+           which (repl_act$interval == repl_act[i,3])  ,1], na.rm=TRUE)
+}
+head(repl_act)
+```
+
+```
+##       steps       date interval
+## 1 1.7169811 2012-10-01        0
+## 2 0.3396226 2012-10-01        5
+## 3 0.1320755 2012-10-01       10
+## 4 0.1509434 2012-10-01       15
+## 5 0.0754717 2012-10-01       20
+## 6 2.0943396 2012-10-01       25
+```
+
+### Histogram of the data with replacement data
+
+```r
+steps_per_day <- aggregate (steps ~ date, repl_act, sum)
+summary(steps_per_day)
+```
+
+```
+##          date        steps      
+##  2012-10-01: 1   Min.   :   41  
+##  2012-10-02: 1   1st Qu.: 9819  
+##  2012-10-03: 1   Median :10766  
+##  2012-10-04: 1   Mean   :10766  
+##  2012-10-05: 1   3rd Qu.:12811  
+##  2012-10-06: 1   Max.   :21194  
+##  (Other)   :55
+```
+
+```r
+hist(steps_per_day$steps,breaks=9, ylab="# of Days", xlab="# of Steps", main="With Replacement Data")
+```
+
+![](activity1_files/figure-html/Histogram with replacement data-1.png) 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```r
+isWeekday <- function (d)
+{
+  wd <- weekdays(as.Date( as.character(d) ), abbreviate=TRUE  )
+
+  r <- factor()
+  if (wd == "Sun" || d == "Sat")
+    r <- as.factor("Weekend")
+  else
+    r <- as.factor("Weekday")
+  is
+  r
+  
+}
+
+repl_act$daytype <- factor( c("Weekday", "Weekend") )
+for (i in 1:nrow(repl_act))
+{
+  repl_act[i,4] <- isWeekday(repl_act[i,2])
+}
+```
