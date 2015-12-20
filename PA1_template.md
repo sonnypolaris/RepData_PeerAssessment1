@@ -188,4 +188,16 @@ for (i in 1:nrow(repl_act))
 {
   repl_act[i,4] <- isWeekday(repl_act[i,2])
 }
+wks <- aggregate (steps ~ interval+daytype, repl_act, sum, na.rm = TRUE)
+
+attach(wks)
+library(lattice)
+xyplot(steps ~ interval| daytype, 
+           data = wks,
+           type = "l",
+           xlab = "Interval",
+           ylab = "Number of steps",
+           layout=c(1,2))
 ```
+
+![](PA1_template_files/figure-html/Weekendays-1.png) 
